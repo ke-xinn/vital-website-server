@@ -65,7 +65,18 @@
       container.innerHTML = '';
 
       Object.values(data).forEach(entry => {
-        const { device_id, temp, hr, spo2, ecg, bp_sys, bp_dia } = entry;
+        const { hr, bp_sys, bp_dia, temp, spo2 } = entry;
+
+        let hrStatus = 'normal';
+        if (hr <= 60) hrStatus = 'bradycardia';
+        else if (hr >= 100) hrStatus = 'tachycardia';
+
+        let bpStatus = 'normal';
+        if (bp_sys >= 180 || bp_dia >= 120) bpStatus = 'emergency';
+        else if (bp_sys < 180 || bp_dia < 120) bpStatus = 'hypertension';
+        else if (bp_sys < 140 || bp_dia < 90) bpStatus = 'hypertension';
+        else if (bp_sys < 130 || bp_dia < 80) bpStatus = 'prehypertension';
+        else if (bp_sys < 80 || bp_dia < 60) bpStatus = 'hypotension';
 
         let tempStatus = 'normal';
         if (temp < 35) tempStatus = 'hypothermia';
@@ -73,38 +84,11 @@
 
         let spo2Status = spo2 < 95 ? 'lowspo2' : 'normal';
 
-        let hrStatus = 'normal';
-        if (hr <= 60) hrStatus = 'bradycardia';
-        else if (hr >= 100) hrStatus = 'tachycardia';
-
-        let bpStatus = 'normal';
-        if (bp_sys <= 180 && bp_dia >= 120) bpStatus = 'emergency';
-        else if (bp_sys < 180 && bp_dia < 120) bpStatus = 'hypertension';
-        else if (bp_sys < 140 && bp_dia < 90) bpStatus = 'hypertension';
-        else if (bp_sys < 130 && bp_dia < 80) bpStatus = 'prehypertension';
-        else if (bp_sys < 80 && bp_dia < 60) bpStatus = 'hypotension';
-
         const html = `
           <div class="device-card">
-            <h2 style="color:#1e3799;">Device ID: ${device_id}</h2>
-
-            <div class="vital-box">
-              <p class="vital-title">Temperature: ${temp} °C</p>
-              <span class="status-tag ${tempStatus}">${tempStatus.toUpperCase()}</span>
-            </div>
-
+            
             <div class="vital-box">
               <p class="vital-title">Heart Rate: ${hr} bpm</p>
-              <span class="status-tag ${hrStatus}">${hrStatus.toUpperCase()}</span>
-            </div>
-
-            <div class="vital-box">
-              <p class="vital-title">SpO₂: ${spo2} %</p>
-              <span class="status-tag ${spo2Status}">${spo2Status.toUpperCase()}</span>
-            </div>
-
-            <div class="vital-box">
-              <p class="vital-title">ECG BPM: ${ecg} bpm</p>
               <span class="status-tag ${hrStatus}">${hrStatus.toUpperCase()}</span>
             </div>
 
@@ -114,6 +98,17 @@
                 <span class="status-tag ${bpStatus}">${bpStatus.toUpperCase()}</span>
               </div>
             ` : ''}
+
+            <div class="vital-box">
+              <p class="vital-title">Temperature: ${temp} °C</p>
+              <span class="status-tag ${tempStatus}">${tempStatus.toUpperCase()}</span>
+            </div>
+
+            <div class="vital-box">
+              <p class="vital-title">SpO₂: ${spo2} %</p>
+              <span class="status-tag ${spo2Status}">${spo2Status.toUpperCase()}</span>
+            </div>
+
           </div>
         `;
 
