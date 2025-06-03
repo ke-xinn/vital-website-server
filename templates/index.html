@@ -1,11 +1,88 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Vital Sign Dashboard</title>
-  <script src="/static/script.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f6fa;
+      padding: 20px;
+      color: #2f3640;
+    }
+    h1 {
+      text-align: center;
+      color: #273c75;
+    }
+    .card {
+      background: #ffffff;
+      padding: 20px;
+      margin: 20px auto;
+      width: 90%;
+      max-width: 600px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .label {
+      font-weight: bold;
+    }
+    .status {
+      padding: 8px;
+      border-radius: 5px;
+      margin-top: 5px;
+      display: inline-block;
+    }
+    .normal { background-color: #7bed9f; }
+    .warning { background-color: #ffa502; }
+    .danger  { background-color: #ff6b81; }
+  </style>
 </head>
 <body>
-  <h1>Patient Vitals</h1>
-  <div id="data"></div>
+  <h1>Vital Sign Dashboard</h1>
+  <div id="data-container"></div>
+
+  <script>
+    async function fetchData() {
+      const res = await fetch('/data');
+      const data = await res.json();
+      const container = document.getElementById('data-container');
+      container.innerHTML = '';
+
+      Object.values(data).forEach(entry => {
+        const { device_id, temp, hr, spo2, ecg, bp_sys, bp_dia } = entry;
+
+        const status = {
+          temp: temp < 35 || temp > 38 ? 'danger' : 'normal',
+          hr: hr < 60 || hr > 100 ? 'warning' : 'normal',
+          spo2: spo2 < 95 ? 'danger' : 'normal',
+          ecg: ecg < 60 || ecg > 100 ? 'warning' : 'normal',
+          bp: (bp_sys && bp_dia) ? (
+            (bp_sys < 90 || bp_dia < 60) ? 'warning' :
+            (bp_sys > 140 || bp_dia > 90) ? 'danger' : 'normal'
+          ) : 'normal'
+        };
+
+        const html = `
+          <div class="card">
+            <h2>Device ID: ${device_id}</h2>
+            <p><span class="label">Temperature:</span> ${temp} °C <span class="status ${status.temp}">${status.temp.toUpperCase()}</span></p>
+            <p><span class="label">Heart Rate:</span> ${hr} bpm <span class="status ${status.hr}">${status.hr.toUpperCase()}</span></p>
+            <p><span class="label">SpO₂:</span> ${spo2} % <span class="status ${status.spo2}">${status.spo2.toUpperCase()}</span></p>
+            <p><span class="label">ECG BPM:</span> ${ecg} bpm <span class="status ${status.ecg}">${status.ecg.toUpperCase()}</span></p>
+            ${bp_sys !== undefined && bp_dia !== undefined ? `
+              <p><span class="label">Blood Pressure:</span> ${bp_sys}/${bp_dia} mmHg 
+              <span class="status ${status.bp}">${status.bp.toUpperCase()}</span></p>
+            ` : ''}
+          </div>
+        `;
+
+        container.innerHTML += html;
+      });
+    }
+
+    setInterval(fetchData, 3000);
+    fetchData();
+  </script>
 </body>
 </html>
+
