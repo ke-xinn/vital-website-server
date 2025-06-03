@@ -65,7 +65,7 @@
       container.innerHTML = '';
 
       Object.values(data).forEach(entry => {
-        const { hr, bp_sys, bp_dia, temp, spo2 } = entry;
+        const { device_id, hr, bp_sys, bp_dia, temp, spo2 } = entry;
 
         let hrStatus = 'normal';
         if (hr <= 60) hrStatus = 'bradycardia';
