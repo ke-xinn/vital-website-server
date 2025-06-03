@@ -4,7 +4,7 @@ async function fetchData() {
   let content = '';
   for (const id in json) {
     const d = json[id];
-    content += `<p><b>${id}</b> → Temp: ${d.temp}, HR: ${d.hr}, SpO2: ${d.spo2}, ECG: ${d.ecg}</p>`;
+    content += `<p><b>${id}</b> → Temp: ${d.temp}, HR: ${d.hr}, SpO2: ${d.spo2}, ECG: ${d.ecg}</p>, BP_SYS: ${d.bp_sys}</p>, BP_DIA: ${d.bp_dia}</p>`;
   }
   document.getElementById('data').innerHTML = content;
 }
