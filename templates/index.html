@@ -5,36 +5,52 @@
   <title>Vital Sign Dashboard</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f5f6fa;
+      font-family: 'Segoe UI', sans-serif;
+      background: #eaf2f8;
       padding: 20px;
-      color: #2f3640;
+      color: #2c3e50;
     }
     h1 {
       text-align: center;
-      color: #273c75;
+      color: #1e3799;
+      margin-bottom: 30px;
     }
-    .card {
+    .device-card {
       background: #ffffff;
       padding: 20px;
       margin: 20px auto;
-      width: 90%;
-      max-width: 600px;
+      width: 95%;
+      max-width: 800px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 50, 0.1);
+    }
+    .vital-box {
+      background: #dff3fc;
+      border: 2px solid #d1e9ff;
       border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 15px;
+      margin: 10px 0;
     }
-    .label {
+    .vital-title {
       font-weight: bold;
+      color: #0c2461;
     }
-    .status {
-      padding: 8px;
-      border-radius: 5px;
-      margin-top: 5px;
+    .status-tag {
       display: inline-block;
+      margin-top: 5px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 0.9em;
+      font-weight: bold;
+      color: white;
     }
-    .normal { background-color: #7bed9f; }
-    .warning { background-color: #ffa502; }
-    .danger  { background-color: #ff6b81; }
+
+    /* Status colors */
+    .normal { background-color: #54a0ff; }
+    .hypothermia, .hypotension, .lowspo2, .bradycardia { background-color: #48dbfb; }
+    .prehypertension, .hyperthermia, .tachycardia { background-color: #f6b93b; }
+    .hypertension { background-color: #e55039; }
+    .emergency { background-color: #b71540; }
   </style>
 </head>
 <body>
@@ -51,27 +67,52 @@
       Object.values(data).forEach(entry => {
         const { device_id, temp, hr, spo2, ecg, bp_sys, bp_dia } = entry;
 
-        const status = {
-          temp: temp < 35 || temp > 38 ? 'danger' : 'normal',
-          hr: hr < 60 || hr > 100 ? 'warning' : 'normal',
-          spo2: spo2 < 95 ? 'danger' : 'normal',
-          ecg: ecg < 60 || ecg > 100 ? 'warning' : 'normal',
-          bp: (bp_sys && bp_dia) ? (
-            (bp_sys < 90 || bp_dia < 60) ? 'warning' :
-            (bp_sys > 140 || bp_dia > 90) ? 'danger' : 'normal'
-          ) : 'normal'
-        };
+        let tempStatus = 'normal';
+        if (temp < 35) tempStatus = 'hypothermia';
+        else if (temp > 37.5) tempStatus = 'hyperthermia';
+
+        let spo2Status = spo2 < 95 ? 'lowspo2' : 'normal';
+
+        let hrStatus = 'normal';
+        if (hr <= 60) hrStatus = 'bradycardia';
+        else if (hr >= 100) hrStatus = 'tachycardia';
+
+        let bpStatus = 'normal';
+        if (bp_sys <= 180 && bp_dia >= 120) bpStatus = 'emergency';
+        else if (bp_sys < 180 && bp_dia < 120) bpStatus = 'hypertension';
+        else if (bp_sys < 140 && bp_dia < 90) bpStatus = 'hypertension';
+        else if (bp_sys < 130 && bp_dia < 80) bpStatus = 'prehypertension';
+        else if (bp_sys < 80 && bp_dia < 60) bpStatus = 'hypotension';
 
         const html = `
-          <div class="card">
-            <h2>Device ID: ${device_id}</h2>
-            <p><span class="label">Temperature:</span> ${temp} °C <span class="status ${status.temp}">${status.temp.toUpperCase()}</span></p>
-            <p><span class="label">Heart Rate:</span> ${hr} bpm <span class="status ${status.hr}">${status.hr.toUpperCase()}</span></p>
-            <p><span class="label">SpO₂:</span> ${spo2} % <span class="status ${status.spo2}">${status.spo2.toUpperCase()}</span></p>
-            <p><span class="label">ECG BPM:</span> ${ecg} bpm <span class="status ${status.ecg}">${status.ecg.toUpperCase()}</span></p>
+          <div class="device-card">
+            <h2 style="color:#1e3799;">Device ID: ${device_id}</h2>
+
+            <div class="vital-box">
+              <p class="vital-title">Temperature: ${temp} °C</p>
+              <span class="status-tag ${tempStatus}">${tempStatus.toUpperCase()}</span>
+            </div>
+
+            <div class="vital-box">
+              <p class="vital-title">Heart Rate: ${hr} bpm</p>
+              <span class="status-tag ${hrStatus}">${hrStatus.toUpperCase()}</span>
+            </div>
+
+            <div class="vital-box">
+              <p class="vital-title">SpO₂: ${spo2} %</p>
+              <span class="status-tag ${spo2Status}">${spo2Status.toUpperCase()}</span>
+            </div>
+
+            <div class="vital-box">
+              <p class="vital-title">ECG BPM: ${ecg} bpm</p>
+              <span class="status-tag ${hrStatus}">${hrStatus.toUpperCase()}</span>
+            </div>
+
             ${bp_sys !== undefined && bp_dia !== undefined ? `
-              <p><span class="label">Blood Pressure:</span> ${bp_sys}/${bp_dia} mmHg 
-              <span class="status ${status.bp}">${status.bp.toUpperCase()}</span></p>
+              <div class="vital-box">
+                <p class="vital-title">Blood Pressure: ${bp_sys}/${bp_dia} mmHg</p>
+                <span class="status-tag ${bpStatus}">${bpStatus.toUpperCase()}</span>
+              </div>
             ` : ''}
           </div>
         `;
@@ -85,4 +126,3 @@
   </script>
 </body>
 </html>
-
