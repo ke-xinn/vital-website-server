@@ -1,5 +1,5 @@
 async function fetchData() {
-  const response = await fetch('/data');
+  const response = await fetch('https://vital-sign-server.onrender.com/data');
   const json = await response.json();
   let content = '';
   for (const id in json) {
