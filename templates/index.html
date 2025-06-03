@@ -59,7 +59,7 @@
 
   <script>
     async function fetchData() {
-      const res = await fetch('https://vital-sign-server.onrender.com/data');
+      const res = await fetch('/data');
       const data = await res.json();
       const container = document.getElementById('data-container');
       container.innerHTML = '';
