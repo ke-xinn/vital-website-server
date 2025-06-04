@@ -3,145 +3,242 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>4Vita Health Dashboard - Debug</title>
+    <title>4Vita Health Dashboard</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f5f5f5;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            min-height: 100vh;
         }
         .dashboard-container {
             max-width: 1200px;
             margin: 0 auto;
         }
         .status-bar {
-            background: #2c3e50;
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
             color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
         }
         .status-indicator {
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
-            background-color: #e74c3c;
-            margin-right: 10px;
+            background-color: #f44336;
+            margin-right: 12px;
             display: inline-block;
+            box-shadow: 0 0 8px rgba(244, 67, 54, 0.5);
         }
         .status-indicator:not(.offline) {
-            background-color: #2ecc71;
+            background-color: #4caf50;
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
         }
         .vital-signs {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
             gap: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 35px;
+            width: 100%;
+            max-width: 1200px;
         }
         .vital-card {
             background: white;
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             text-align: center;
+            border: 2px solid #e3f2fd;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+        }
+        .vital-icon {
+            font-size: 2.5em;
+            margin-bottom: 8px;
+            color: #1976d2;
+        }
+        .vital-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(25, 118, 210, 0.2);
         }
         .vital-value {
-            font-size: 2.5em;
+            font-size: 2.2em;
             font-weight: bold;
-            color: #2c3e50;
-            margin: 10px 0;
+            color: #1976d2;
+            margin: 8px 0;
         }
         .vital-label {
-            color: #7f8c8d;
-            font-size: 0.9em;
+            color: #64b5f6;
+            font-size: 0.85em;
             text-transform: uppercase;
             letter-spacing: 1px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .vital-unit {
+            color: #90caf9;
+            font-size: 0.8em;
+            margin-top: 3px;
+        }
+        .health-status {
+            margin-top: 10px;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.7em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .status-normal {
+            background: #e8f5e8;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+        .status-warning {
+            background: #fff3e0;
+            color: #f57c00;
+            border: 1px solid #ffcc02;
+        }
+        .status-danger {
+            background: #ffebee;
+            color: #d32f2f;
+            border: 1px solid #ffcdd2;
+        }
+        .status-emergency {
+            background: #d32f2f;
+            color: white;
+            border: 1px solid #b71c1c;
+            animation: emergencyPulse 1.5s infinite;
+        }
+        .status-info {
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #bbdefb;
+        }
+        @keyframes emergencyPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
         }
         .charts-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: 25px;
+            margin-bottom: 35px;
         }
         .chart-card {
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+            border: 2px solid #e3f2fd;
+        }
+        .chart-card h3 {
+            color: #1976d2;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            text-align: center;
         }
         .chart-container {
             position: relative;
             height: 300px;
         }
-        .debug-section {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .debug-title {
-            color: #e74c3c;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-        .debug-log {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 0.9em;
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #dee2e6;
-        }
         .alert-banner {
-            background: #f39c12;
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
             color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 25px;
             display: none;
+            font-weight: 600;
         }
         .alert-banner.show {
             display: block;
         }
         .alert-banner.critical {
-            background: #e74c3c;
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
             animation: pulse 2s infinite;
         }
         @keyframes pulse {
             0% { opacity: 1; }
-            50% { opacity: 0.7; }
+            50% { opacity: 0.8; }
             100% { opacity: 1; }
         }
         .history-table {
             background: white;
-            border-radius: 8px;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+            border: 2px solid #e3f2fd;
         }
         table {
             width: 100%;
             border-collapse: collapse;
         }
         th, td {
-            padding: 12px;
+            padding: 16px;
             text-align: left;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #e3f2fd;
         }
         th {
-            background: #f8f9fa;
-            font-weight: 600;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            font-weight: 700;
+            color: #1976d2;
+            text-transform: uppercase;
+            font-size: 0.9em;
+            letter-spacing: 0.5px;
+        }
+        .history-table h3 {
+            padding: 25px;
+            margin: 0;
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            color: white;
+            font-size: 1.2em;
+            text-align: center;
         }
         @media (max-width: 768px) {
             .charts-container {
                 grid-template-columns: 1fr;
+            }
+            .vital-signs {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            .vital-card {
+                min-height: 150px;
+                padding: 15px;
+            }
+            .vital-icon {
+                font-size: 2em;
+            }
+            .vital-value {
+                font-size: 1.8em;
+            }
+        }
+        @media (max-width: 480px) {
+            .vital-card {
+                min-height: 120px;
+                padding: 12px;
+            }
+            .vital-icon {
+                font-size: 1.8em;
+            }
+            .vital-value {
+                font-size: 1.6em;
+            }
+            .vital-label {
+                font-size: 0.75em;
             }
         }
     </style>
@@ -162,40 +259,34 @@
             <span id="alertMessage">Health Alert</span>
         </div>
 
-        <!-- Debug Section -->
-        <div class="debug-section">
-            <div class="debug-title">🔍 Debug Information</div>
-            <div>
-                <strong>Server Status:</strong> <span id="serverStatus">Checking...</span><br>
-                <strong>Last Fetch:</strong> <span id="lastFetch">None</span><br>
-                <strong>Data Count:</strong> <span id="dataCount">0</span><br>
-                <strong>Errors:</strong> <span id="errorCount">0</span>
-            </div>
-            <div class="debug-log" id="debugLog">
-                Debug logs will appear here...
-            </div>
-        </div>
-
         <div class="vital-signs">
             <div class="vital-card">
+                <div class="vital-icon">❤️</div>
                 <div class="vital-label">Heart Rate</div>
                 <div class="vital-value" id="heartRate">--</div>
-                <div class="vital-label">BPM</div>
+                <div class="vital-unit">BPM</div>
+                <div class="health-status" id="heartRateStatus">Connecting...</div>
             </div>
             <div class="vital-card">
+                <div class="vital-icon">🩸</div>
                 <div class="vital-label">Blood Pressure</div>
                 <div class="vital-value" id="bloodPressure">--/--</div>
-                <div class="vital-label">mmHg</div>
+                <div class="vital-unit">mmHg</div>
+                <div class="health-status" id="bloodPressureStatus">Connecting...</div>
             </div>
             <div class="vital-card">
+                <div class="vital-icon">🌡️</div>
                 <div class="vital-label">Temperature</div>
                 <div class="vital-value" id="temperature">--</div>
-                <div class="vital-label">°C</div>
+                <div class="vital-unit">°C</div>
+                <div class="health-status" id="temperatureStatus">Connecting...</div>
             </div>
             <div class="vital-card">
-                <div class="vital-label">Oxygen Saturation</div>
+                <div class="vital-icon">🧬</div>
+                <div class="vital-label">Hemoglobin Saturation</div>
                 <div class="vital-value" id="oxygenSat">--</div>
-                <div class="vital-label">%</div>
+                <div class="vital-unit">%</div>
+                <div class="health-status" id="oxygenStatus">Connecting...</div>
             </div>
         </div>
 
@@ -215,7 +306,7 @@
         </div>
 
         <div class="history-table">
-            <h3 style="padding: 20px; margin: 0; background: #f8f9fa;">Recent Readings</h3>
+            <h3>Recent Health Readings</h3>
             <table>
                 <thead>
                     <tr>
@@ -223,7 +314,7 @@
                         <th>Heart Rate</th>
                         <th>Blood Pressure</th>
                         <th>Temperature</th>
-                        <th>SpO2</th>
+                        <th>HbSat</th>
                     </tr>
                 </thead>
                 <tbody id="historyBody">
@@ -238,7 +329,7 @@
     </div>
 
     <script>
-        // Enhanced Debug Dashboard Class
+        // Health Dashboard Class with Status Indicators
         class VitalSignsDashboard {
             constructor() {
                 this.isOnline = false;
@@ -246,11 +337,6 @@
                 this.heartRateChart = null;
                 this.bloodPressureChart = null;
                 this.maxDataPoints = 20;
-                this.debugLog = [];
-                this.errorCount = 0;
-                this.dataCount = 0;
-                
-                this.log('🚀 Dashboard initializing...');
                 
                 this.initializeCharts();
                 this.startDataFetching();
@@ -258,35 +344,11 @@
                 // Update every 5 seconds
                 setInterval(() => this.fetchLatestData(), 5000);
                 setInterval(() => this.loadHistoryData(), 30000);
-                
-                this.log('✅ Dashboard initialized');
-            }
-
-            log(message) {
-                const timestamp = new Date().toLocaleTimeString();
-                const logMessage = `[${timestamp}] ${message}`;
-                this.debugLog.push(logMessage);
-                
-                // Keep only last 20 log entries
-                if (this.debugLog.length > 20) {
-                    this.debugLog.shift();
-                }
-                
-                // Update debug log display
-                const debugLogElement = document.getElementById('debugLog');
-                if (debugLogElement) {
-                    debugLogElement.innerHTML = this.debugLog.join('\n');
-                    debugLogElement.scrollTop = debugLogElement.scrollHeight;
-                }
-                
-                console.log(logMessage);
             }
 
             initializeCharts() {
                 try {
-                    this.log('📊 Initializing charts...');
-                    
-                    // Heart Rate Chart
+                    // Heart Rate Chart with blue theme
                     const heartCtx = document.getElementById('heartRateChart').getContext('2d');
                     this.heartRateChart = new Chart(heartCtx, {
                         type: 'line',
@@ -295,8 +357,8 @@
                             datasets: [{
                                 label: 'Heart Rate (bpm)',
                                 data: [],
-                                borderColor: '#e74c3c',
-                                backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                                borderColor: '#1976d2',
+                                backgroundColor: 'rgba(25, 118, 210, 0.1)',
                                 borderWidth: 3,
                                 fill: true,
                                 tension: 0.4
@@ -309,13 +371,21 @@
                                 y: {
                                     beginAtZero: false,
                                     min: 50,
-                                    max: 120
+                                    max: 120,
+                                    grid: {
+                                        color: '#e3f2fd'
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        color: '#e3f2fd'
+                                    }
                                 }
                             }
                         }
                     });
 
-                    // Blood Pressure Chart
+                    // Blood Pressure Chart with blue theme
                     const bpCtx = document.getElementById('bloodPressureChart').getContext('2d');
                     this.bloodPressureChart = new Chart(bpCtx, {
                         type: 'line',
@@ -325,7 +395,7 @@
                                 {
                                     label: 'Systolic',
                                     data: [],
-                                    borderColor: '#3498db',
+                                    borderColor: '#1976d2',
                                     borderWidth: 3,
                                     fill: false,
                                     tension: 0.4
@@ -333,7 +403,7 @@
                                 {
                                     label: 'Diastolic',
                                     data: [],
-                                    borderColor: '#2ecc71',
+                                    borderColor: '#42a5f5',
                                     borderWidth: 3,
                                     fill: false,
                                     tension: 0.4
@@ -347,7 +417,15 @@
                                 y: {
                                     beginAtZero: false,
                                     min: 40,
-                                    max: 180
+                                    max: 180,
+                                    grid: {
+                                        color: '#e3f2fd'
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        color: '#e3f2fd'
+                                    }
                                 }
                             },
                             plugins: {
@@ -358,52 +436,36 @@
                             }
                         }
                     });
-                    
-                    this.log('✅ Charts initialized');
                 } catch (error) {
-                    this.log('❌ Chart initialization failed: ' + error.message);
+                    console.error('Chart initialization failed:', error);
                 }
             }
 
             async startDataFetching() {
-                this.log('🔄 Starting data fetching...');
                 await this.fetchLatestData();
                 await this.loadHistoryData();
             }
 
             async fetchLatestData() {
                 try {
-                    this.log('📡 Fetching latest data...');
-                    document.getElementById('lastFetch').textContent = new Date().toLocaleTimeString();
-                    
                     const response = await fetch(`${window.location.origin}/api/latest`);
-                    
-                    this.log(`📡 Response status: ${response.status}`);
                     
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
                     
                     const data = await response.json();
-                    this.log('📊 Data received: ' + JSON.stringify(data, null, 2));
-                    
                     this.updateDashboard(data);
                     this.updateConnectionStatus(true);
-                    this.dataCount++;
-                    document.getElementById('dataCount').textContent = this.dataCount;
                     
                 } catch (error) {
-                    this.log('❌ Fetch error: ' + error.message);
-                    this.errorCount++;
-                    document.getElementById('errorCount').textContent = this.errorCount;
+                    console.error('Fetch error:', error);
                     this.updateConnectionStatus(false);
                 }
             }
 
             async loadHistoryData() {
                 try {
-                    this.log('📜 Loading history data...');
-                    
                     const response = await fetch(`${window.location.origin}/api/history?limit=20`);
                     
                     if (!response.ok) {
@@ -411,20 +473,16 @@
                     }
                     
                     const history = await response.json();
-                    this.log(`📜 History loaded: ${history.length} records`);
-                    
                     this.updateHistoryTable(history);
                     this.updateCharts(history);
                     
                 } catch (error) {
-                    this.log('❌ History load error: ' + error.message);
+                    console.error('History load error:', error);
                 }
             }
 
             updateDashboard(data) {
                 try {
-                    this.log('🔄 Updating dashboard display...');
-                    
                     // Update vital signs display
                     document.getElementById('heartRate').textContent = data.bpm || '--';
                     document.getElementById('bloodPressure').textContent = 
@@ -433,18 +491,90 @@
                         data.temperature ? data.temperature.toFixed(1) : '--';
                     document.getElementById('oxygenSat').textContent = data.spo2 || '--';
 
+                    // Update health status indicators
+                    this.updateHealthStatus(data);
+
                     // Update last update time
                     const lastUpdate = data.server_timestamp || data.timestamp;
                     if (lastUpdate) {
                         const updateTime = new Date(lastUpdate);
                         document.getElementById('lastUpdate').textContent = updateTime.toLocaleTimeString();
-                        this.log(`⏰ Last update: ${updateTime.toLocaleTimeString()}`);
                     }
-
-                    this.log('✅ Dashboard updated successfully');
                     
                 } catch (error) {
-                    this.log('❌ Dashboard update error: ' + error.message);
+                    console.error('Dashboard update error:', error);
+                }
+            }
+
+            updateHealthStatus(data) {
+                // Heart Rate Status
+                const heartRateStatus = document.getElementById('heartRateStatus');
+                const bpm = data.bpm;
+                
+                if (!bpm || bpm <= 0) {
+                    heartRateStatus.textContent = 'Please attach sensor...';
+                    heartRateStatus.className = 'health-status status-info';
+                } else if (bpm <= 60) {
+                    heartRateStatus.textContent = 'Bradycardia';
+                    heartRateStatus.className = 'health-status status-warning';
+                } else if (bpm >= 100) {
+                    heartRateStatus.textContent = 'Tachycardia';
+                    heartRateStatus.className = 'health-status status-warning';
+                } else {
+                    heartRateStatus.textContent = 'Normal HR';
+                    heartRateStatus.className = 'health-status status-normal';
+                }
+
+                // Temperature Status
+                const temperatureStatus = document.getElementById('temperatureStatus');
+                const temp = data.temperature;
+                
+                if (temp < 35.0) {
+                    temperatureStatus.textContent = 'Hypothermia';
+                    temperatureStatus.className = 'health-status status-danger';
+                } else if (temp > 37.5) {
+                    temperatureStatus.textContent = 'Hyperthermia';
+                    temperatureStatus.className = 'health-status status-danger';
+                } else {
+                    temperatureStatus.textContent = 'Normal Temp';
+                    temperatureStatus.className = 'health-status status-normal';
+                }
+
+                // HbSat Status (formerly SpO2)
+                const oxygenStatus = document.getElementById('oxygenStatus');
+                const spo2 = data.spo2;
+                
+                if (spo2 < 95.0) {
+                    oxygenStatus.textContent = 'Low HbSat';
+                    oxygenStatus.className = 'health-status status-danger';
+                } else {
+                    oxygenStatus.textContent = 'Normal HbSat';
+                    oxygenStatus.className = 'health-status status-normal';
+                }
+
+                // Blood Pressure Status
+                const bloodPressureStatus = document.getElementById('bloodPressureStatus');
+                const sys = data.sys;
+                const dia = data.dia;
+                
+                if (sys < 80 || dia < 60) {
+                    bloodPressureStatus.textContent = 'Hypotension';
+                    bloodPressureStatus.className = 'health-status status-warning';
+                } else if (sys < 120 && dia < 80) {
+                    bloodPressureStatus.textContent = 'Normal BP';
+                    bloodPressureStatus.className = 'health-status status-normal';
+                } else if (sys < 130 || dia < 80) {
+                    bloodPressureStatus.textContent = 'Prehypertension';
+                    bloodPressureStatus.className = 'health-status status-warning';
+                } else if (sys < 140 || dia < 90) {
+                    bloodPressureStatus.textContent = 'Hypertension';
+                    bloodPressureStatus.className = 'health-status status-warning';
+                } else if (sys < 180 || dia < 120) {
+                    bloodPressureStatus.textContent = 'Hypertension';
+                    bloodPressureStatus.className = 'health-status status-danger';
+                } else if (sys >= 180 || dia >= 120) {
+                    bloodPressureStatus.textContent = 'Emergency!!!';
+                    bloodPressureStatus.className = 'health-status status-emergency';
                 }
             }
 
@@ -452,18 +582,13 @@
                 this.isOnline = isOnline;
                 const statusIndicator = document.getElementById('statusIndicator');
                 const connectionStatus = document.getElementById('connectionStatus');
-                const serverStatus = document.getElementById('serverStatus');
 
                 if (isOnline) {
                     statusIndicator.classList.remove('offline');
                     connectionStatus.textContent = 'Connected to 4Vita Device';
-                    serverStatus.textContent = 'Online';
-                    serverStatus.style.color = '#2ecc71';
                 } else {
                     statusIndicator.classList.add('offline');
                     connectionStatus.textContent = 'Connection Lost';
-                    serverStatus.textContent = 'Offline';
-                    serverStatus.style.color = '#e74c3c';
                 }
             }
 
@@ -522,9 +647,8 @@
                     this.bloodPressureChart.data.datasets[1].data = diastolicData;
                     this.bloodPressureChart.update('none');
                     
-                    this.log('📊 Charts updated');
                 } catch (error) {
-                    this.log('❌ Chart update error: ' + error.message);
+                    console.error('Chart update error:', error);
                 }
             }
         }

@@ -69,9 +69,12 @@ def upload_data():
 
 @app.route('/api/latest', methods=['GET'])
 def get_latest():
-    """Get latest data"""
+    """Get latest data - FIXED VERSION"""
     try:
+        logger.info(f"Latest data request - data_store has {len(data_store)} items")
+        
         if not data_store:
+            logger.info("No data available in store")
             return jsonify({
                 "message": "No data available",
                 "bpm": None,
@@ -84,11 +87,14 @@ def get_latest():
             }), 200
         
         latest = data_store[-1]  # Get last item
+        logger.info(f"Returning latest data: {latest}")
         return jsonify(latest), 200
         
     except Exception as e:
         logger.error(f"Error getting latest: {e}")
         return jsonify({"error": str(e)}), 500
+
+# REMOVED THE DUPLICATE ROUTE - this was causing the conflict!
 
 @app.route('/api/history', methods=['GET'])
 def get_history():
@@ -97,6 +103,7 @@ def get_history():
         limit = request.args.get('limit', 20, type=int)
         history = data_store[-limit:] if len(data_store) > limit else data_store
         history.reverse()  # Most recent first
+        logger.info(f"Returning {len(history)} history items")
         return jsonify(history), 200
         
     except Exception as e:
