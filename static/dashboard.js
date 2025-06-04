@@ -124,16 +124,22 @@ class VitalSignsDashboard {
 
     // Replace these two fetch calls in your existing dashboard.js:
 
-// In fetchLatestData() method:
+// Replace these methods in your /static/dashboard.js file:
+
 async fetchLatestData() {
     try {
-        // Use absolute URL for production
+        // Use absolute URL - this was likely the issue
         const response = await fetch(`${window.location.origin}/api/latest`);
+        
+        console.log('Fetch response status:', response.status); // Debug log
+        
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
+        console.log('Latest data received:', data); // Debug log
+        
         this.updateDashboard(data);
         this.updateConnectionStatus(true);
         
@@ -143,27 +149,37 @@ async fetchLatestData() {
     }
 }
 
-// In loadHistoryData() method:
 async loadHistoryData() {
     try {
-        // Use absolute URL for production
+        // Use absolute URL - this was likely the issue
         const response = await fetch(`${window.location.origin}/api/history?limit=20`);
+        
+        console.log('History response status:', response.status); // Debug log
+        
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const history = await response.json();
+        console.log('History data received:', history); // Debug log
+        
         this.updateHistoryTable(history);
         this.updateCharts(history);
         
         // Hide loading spinner
-        document.getElementById('historyLoading').style.display = 'none';
-        document.getElementById('historyTable').style.display = 'table';
+        const historyLoading = document.getElementById('historyLoading');
+        const historyTable = document.getElementById('historyTable');
+        
+        if (historyLoading) historyLoading.style.display = 'none';
+        if (historyTable) historyTable.style.display = 'table';
         
     } catch (error) {
         console.error('Error loading history:', error);
-        document.getElementById('historyLoading').innerHTML = 
-            '<i class="fas fa-exclamation-triangle"></i> Error loading history data';
+        const historyLoading = document.getElementById('historyLoading');
+        if (historyLoading) {
+            historyLoading.innerHTML = 
+                '<i class="fas fa-exclamation-triangle"></i> Error loading history data';
+        }
     }
 }
 
