@@ -122,48 +122,50 @@ class VitalSignsDashboard {
         });
     }
 
-    async startDataFetching() {
-        await this.fetchLatestData();
-    }
+    // Replace these two fetch calls in your existing dashboard.js:
 
-    async fetchLatestData() {
-        try {
-            const response = await fetch('/api/latest');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            this.updateDashboard(data);
-            this.updateConnectionStatus(true);
-            
-        } catch (error) {
-            console.error('Error fetching latest data:', error);
-            this.updateConnectionStatus(false);
+// In fetchLatestData() method:
+async fetchLatestData() {
+    try {
+        // Use absolute URL for production
+        const response = await fetch(`${window.location.origin}/api/latest`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
+        const data = await response.json();
+        this.updateDashboard(data);
+        this.updateConnectionStatus(true);
+        
+    } catch (error) {
+        console.error('Error fetching latest data:', error);
+        this.updateConnectionStatus(false);
     }
+}
 
-    async loadHistoryData() {
-        try {
-            const response = await fetch('/api/history?limit=20');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const history = await response.json();
-            this.updateHistoryTable(history);
-            this.updateCharts(history);
-            
-            // Hide loading spinner
-            document.getElementById('historyLoading').style.display = 'none';
-            document.getElementById('historyTable').style.display = 'table';
-            
-        } catch (error) {
-            console.error('Error loading history:', error);
-            document.getElementById('historyLoading').innerHTML = 
-                '<i class="fas fa-exclamation-triangle"></i> Error loading history data';
+// In loadHistoryData() method:
+async loadHistoryData() {
+    try {
+        // Use absolute URL for production
+        const response = await fetch(`${window.location.origin}/api/history?limit=20`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
+        const history = await response.json();
+        this.updateHistoryTable(history);
+        this.updateCharts(history);
+        
+        // Hide loading spinner
+        document.getElementById('historyLoading').style.display = 'none';
+        document.getElementById('historyTable').style.display = 'table';
+        
+    } catch (error) {
+        console.error('Error loading history:', error);
+        document.getElementById('historyLoading').innerHTML = 
+            '<i class="fas fa-exclamation-triangle"></i> Error loading history data';
     }
+}
 
     updateDashboard(data) {
         // Update vital signs display
