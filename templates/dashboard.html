@@ -344,6 +344,55 @@
     </div>
 
     <script>
+        // Utility function to format date/time to Malaysia timezone (UTC+8)
+        function formatMalaysiaTime(dateInput, includeDate = false) {
+            try {
+                let date;
+                
+                // Handle different input types
+                if (typeof dateInput === 'string') {
+                    date = new Date(dateInput);
+                } else if (dateInput instanceof Date) {
+                    date = dateInput;
+                } else if (typeof dateInput === 'number') {
+                    date = new Date(dateInput);
+                } else {
+                    date = new Date();
+                }
+                
+                // Check if date is valid
+                if (isNaN(date.getTime())) {
+                    date = new Date();
+                }
+                
+                // Format to Malaysia Standard Time (UTC+8)
+                const options = {
+                    timeZone: 'Asia/Kuala_Lumpur',
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                };
+                
+                if (includeDate) {
+                    options.year = 'numeric';
+                    options.month = '2-digit';
+                    options.day = '2-digit';
+                }
+                
+                return date.toLocaleString('en-MY', options);
+                
+            } catch (error) {
+                console.error('Date formatting error:', error);
+                return '--:--:--';
+            }
+        }
+
+        // Get current Malaysia time
+        function getCurrentMalaysiaTime() {
+            return formatMalaysiaTime(new Date());
+        }
+
         // Health Dashboard Class with Status Indicators
         class VitalSignsDashboard {
             constructor() {
@@ -361,6 +410,13 @@
                 // Update every 5 seconds
                 setInterval(() => this.fetchLatestData(), 5000);
                 setInterval(() => this.loadHistoryData(), 30000);
+                
+                // Update current time display every second
+                setInterval(() => {
+                    if (!this.isOnline) {
+                        document.getElementById('lastUpdate').textContent = 'Disconnected';
+                    }
+                }, 1000);
             }
 
             initializeCharts() {
@@ -586,11 +642,12 @@
                     // Update health status indicators
                     this.updateHealthStatus(data);
 
-                    // Update last update time
+                    // Update last update time with Malaysia timezone
                     const lastUpdate = data.server_timestamp || data.timestamp;
                     if (lastUpdate) {
-                        const updateTime = new Date(lastUpdate);
-                        document.getElementById('lastUpdate').textContent = updateTime.toLocaleTimeString();
+                        document.getElementById('lastUpdate').textContent = formatMalaysiaTime(lastUpdate);
+                    } else {
+                        document.getElementById('lastUpdate').textContent = getCurrentMalaysiaTime();
                     }
                     
                 } catch (error) {
@@ -695,10 +752,10 @@
 
                 history.slice(0, 10).forEach(reading => {
                     const row = tbody.insertRow();
-                    const timestamp = new Date(reading.server_timestamp || reading.timestamp);
+                    const timestamp = reading.server_timestamp || reading.timestamp;
                     
                     row.innerHTML = `
-                        <td>${timestamp.toLocaleString()}</td>
+                        <td>${formatMalaysiaTime(timestamp, true)}</td>
                         <td>${reading.bpm || '--'} bpm</td>
                         <td>${reading.sys && reading.dia ? `${reading.sys}/${reading.dia}` : '--/--'} mmHg</td>
                         <td>${reading.temperature ? reading.temperature.toFixed(1) : '--'}°C</td>
@@ -723,8 +780,9 @@
                     const spo2Data = [];
 
                     sortedHistory.slice(-this.maxDataPoints).forEach(reading => {
-                        const time = new Date(reading.server_timestamp || reading.timestamp);
-                        labels.push(time.toLocaleTimeString());
+                        const timestamp = reading.server_timestamp || reading.timestamp;
+                        // Show only time (HH:MM:SS) in charts for better readability
+                        labels.push(formatMalaysiaTime(timestamp));
                         heartRateData.push(reading.bpm);
                         systolicData.push(reading.sys);
                         diastolicData.push(reading.dia);
@@ -762,6 +820,8 @@
         // Initialize dashboard when page loads
         document.addEventListener('DOMContentLoaded', function() {
             console.log('4Vita Health Dashboard Loading...');
+            console.log('Current Malaysia Time:', getCurrentMalaysiaTime());
+            
             const dashboard = new VitalSignsDashboard();
             
             // Make dashboard globally accessible for debugging
