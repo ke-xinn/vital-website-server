@@ -283,7 +283,7 @@
             </div>
             <div class="vital-card">
                 <div class="vital-icon">🧬</div>
-                <div class="vital-label">Hemoglobin Saturation</div>
+                <div class="vital-label">Blood Saturation</div>
                 <div class="vital-value" id="oxygenSat">--</div>
                 <div class="vital-unit">%</div>
                 <div class="health-status" id="oxygenStatus">Connecting...</div>
@@ -301,6 +301,21 @@
                 <h3>Blood Pressure Trend</h3>
                 <div class="chart-container">
                     <canvas id="bloodPressureChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-card">
+                <h3>Temperature Trend</h3>
+                <div class="chart-container">
+                    <canvas id="temperatureChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>Blood Saturation Trend</h3>
+                <div class="chart-container">
+                    <canvas id="spo2Chart"></canvas>
                 </div>
             </div>
         </div>
@@ -336,6 +351,8 @@
                 this.lastUpdateTime = null;
                 this.heartRateChart = null;
                 this.bloodPressureChart = null;
+                this.temperatureChart = null;
+                this.spo2Chart = null;
                 this.maxDataPoints = 20;
                 
                 this.initializeCharts();
@@ -373,7 +390,7 @@
                                     min: 50,
                                     max: 120,
                                     grid: {
-                                        color: '#e3f2fd'
+                                        color: '#f3e5f5'
                                     }
                                 },
                                 x: {
@@ -385,7 +402,7 @@
                         }
                     });
 
-                    // Blood Pressure Chart with blue theme
+                    // Blood Pressure Chart with purple/magenta theme
                     const bpCtx = document.getElementById('bloodPressureChart').getContext('2d');
                     this.bloodPressureChart = new Chart(bpCtx, {
                         type: 'line',
@@ -395,7 +412,7 @@
                                 {
                                     label: 'Systolic',
                                     data: [],
-                                    borderColor: '#1976d2',
+                                    borderColor: '#9c27b0',
                                     borderWidth: 3,
                                     fill: false,
                                     tension: 0.4
@@ -403,7 +420,7 @@
                                 {
                                     label: 'Diastolic',
                                     data: [],
-                                    borderColor: '#42a5f5',
+                                    borderColor: '#e91e63',
                                     borderWidth: 3,
                                     fill: false,
                                     tension: 0.4
@@ -436,6 +453,81 @@
                             }
                         }
                     });
+
+                    // Temperature Chart with red/orange theme
+                    const tempCtx = document.getElementById('temperatureChart').getContext('2d');
+                    this.temperatureChart = new Chart(tempCtx, {
+                        type: 'line',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: 'Temperature (°C)',
+                                data: [],
+                                borderColor: '#ff5722',
+                                backgroundColor: 'rgba(255, 87, 34, 0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: false,
+                                    min: 34,
+                                    max: 42,
+                                    grid: {
+                                        color: '#ffebee'
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        color: '#ffebee'
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    // SpO2 Chart with green theme
+                    const spo2Ctx = document.getElementById('spo2Chart').getContext('2d');
+                    this.spo2Chart = new Chart(spo2Ctx, {
+                        type: 'line',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: 'Blood Saturation (%)',
+                                data: [],
+                                borderColor: '#4caf50',
+                                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: false,
+                                    min: 90,
+                                    max: 100,
+                                    grid: {
+                                        color: '#e8f5e8'
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        color: '#e8f5e8'
+                                    }
+                                }
+                            }
+                        }
+                    });
+
                 } catch (error) {
                     console.error('Chart initialization failed:', error);
                 }
@@ -545,10 +637,10 @@
                 const spo2 = data.spo2;
                 
                 if (spo2 < 95.0) {
-                    oxygenStatus.textContent = 'Low HbSat';
+                    oxygenStatus.textContent = 'Low SpO2';
                     oxygenStatus.className = 'health-status status-danger';
                 } else {
-                    oxygenStatus.textContent = 'Normal HbSat';
+                    oxygenStatus.textContent = 'Normal SpO2';
                     oxygenStatus.className = 'health-status status-normal';
                 }
 
@@ -627,6 +719,8 @@
                     const heartRateData = [];
                     const systolicData = [];
                     const diastolicData = [];
+                    const temperatureData = [];
+                    const spo2Data = [];
 
                     sortedHistory.slice(-this.maxDataPoints).forEach(reading => {
                         const time = new Date(reading.server_timestamp || reading.timestamp);
@@ -634,6 +728,8 @@
                         heartRateData.push(reading.bpm);
                         systolicData.push(reading.sys);
                         diastolicData.push(reading.dia);
+                        temperatureData.push(reading.temperature);
+                        spo2Data.push(reading.spo2);
                     });
 
                     // Update Heart Rate Chart
@@ -646,6 +742,16 @@
                     this.bloodPressureChart.data.datasets[0].data = systolicData;
                     this.bloodPressureChart.data.datasets[1].data = diastolicData;
                     this.bloodPressureChart.update('none');
+
+                    // Update Temperature Chart
+                    this.temperatureChart.data.labels = labels;
+                    this.temperatureChart.data.datasets[0].data = temperatureData;
+                    this.temperatureChart.update('none');
+
+                    // Update SpO2 Chart
+                    this.spo2Chart.data.labels = labels;
+                    this.spo2Chart.data.datasets[0].data = spo2Data;
+                    this.spo2Chart.update('none');
                     
                 } catch (error) {
                     console.error('Chart update error:', error);
