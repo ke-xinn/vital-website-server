@@ -388,6 +388,15 @@
             }
         }
 
+        function convertServerTimestampToMalaysia(serverTimestamp) {
+            try {
+                const date = new Date(serverTimestamp);
+                return new Date(date.getTime() + (8 * 60 * 60 * 1000));
+            } catch {
+                return new Date();
+            }
+        }
+
         // Get current Malaysia time
         function getCurrentMalaysiaTime() {
             return formatMalaysiaTime(new Date());
@@ -645,7 +654,7 @@
                     // Update last update time with Malaysia timezone
                     const lastUpdate = data.server_timestamp || data.timestamp;
                     if (lastUpdate) {
-                        document.getElementById('lastUpdate').textContent = formatMalaysiaTime(lastUpdate);
+                        document.getElementById('lastUpdate').textContent = formatMalaysiaTime(convertServerTimestampToMalaysia(lastUpdate));
                     } else {
                         document.getElementById('lastUpdate').textContent = getCurrentMalaysiaTime();
                     }
@@ -755,7 +764,7 @@
                     const timestamp = reading.server_timestamp || reading.timestamp;
                     
                     row.innerHTML = `
-                        <td>${formatMalaysiaTime(timestamp, true)}</td>
+                        <td>${formatMalaysiaTime(convertServerTimestampToMalaysia(timestamp), true)}</td>
                         <td>${reading.bpm || '--'} bpm</td>
                         <td>${reading.sys && reading.dia ? `${reading.sys}/${reading.dia}` : '--/--'} mmHg</td>
                         <td>${reading.temperature ? reading.temperature.toFixed(1) : '--'}°C</td>
@@ -782,7 +791,7 @@
                     sortedHistory.slice(-this.maxDataPoints).forEach(reading => {
                         const timestamp = reading.server_timestamp || reading.timestamp;
                         // Show only time (HH:MM:SS) in charts for better readability
-                        labels.push(formatMalaysiaTime(timestamp));
+                        labels.push(formatMalaysiaTime(convertServerTimestampToMalaysia(timestamp)));
                         heartRateData.push(reading.bpm);
                         systolicData.push(reading.sys);
                         diastolicData.push(reading.dia);
